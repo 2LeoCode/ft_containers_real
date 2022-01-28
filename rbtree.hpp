@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   rbtree.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: crochu <crochu@student.42.fr>              +#+  +:+       +#+        */
+/*   By: lsuardi <lsuardi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/05 23:43:13 by crochu            #+#    #+#             */
-/*   Updated: 2021/12/30 01:01:23 by crochu           ###   ########.fr       */
+/*   Updated: 2022/01/28 17:42:33 by lsuardi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,15 +25,13 @@
 #include "pair.hpp"
 
 template <
-	class Key,
-	class T,
+	class value_type,
 	class value_compare,
-	class Allocator = std::allocator< ft::pair< const Key, T > >,
+	class Allocator = std::allocator< value_type >,
 	typename size_type = std::size_t,
 	typename difference_type = std::ptrdiff_t
 > class rbtree {
 	public:
-		typedef ft::pair< const Key, T >	value_type;
 		enum color {
 			RED,
 			BLACK
@@ -90,9 +88,8 @@ template <
 				const rbnode		*right(void) const { return _right; }
 				rbnode				*&rright(void) { return _right; }
 				rbnode				*sibling(void) {
-					if (_parent->_left == this)
-						return _parent->_right;
-					return _parent->_left;
+					return _parent->_left == this ?
+						_parent->_right : _parent->_left;
 				}
 
 				rbnode		*rotate_left(void) {
@@ -173,14 +170,16 @@ template <
 				) {
 					bool	is_less = cmp(data, *_data);
 
-					if (data.first == _data->first) throw EDuplicate();
-					else if (is_less) {
+					if (is_less) {
 						if (_left) throw std::invalid_argument(
 								"node already has a left child"
 							);
-					} else if (_right) throw std::invalid_argument(
+					} else if (cmp(*_data, data)) {
+						if (_right) 
+							throw std::invalid_argument(
 								"node already has a right child"
 							);
+					} else throw EDuplicate();
 
 					rbnode	*child = new rbnode(RED, data, this, hint);
 					if (is_less) _left = child;
@@ -369,79 +368,59 @@ template <
 			_root = NULL;
 		}
 
-		template <
-			class KeyCmp
-		> T				&find(
-			const Key &key,
-			const KeyCmp &cmp = std::less< Key >()
-		) {
+		value_type		&find(const value_type &value) {
 			rbnode	*node = _root;
 
 			if (!node) throw std::out_of_range("rbtree::find");
 			while (node) {
-				if (cmp(key, node->data().first)) {
+				if (_comp(value, node->cdata())) {
 					node = node->left();
-				} else if (key != node->data().first) {
+				} else if (_comp(node->cdata(), value)) {
 					node = node->right();
 				} else break ;
 			}
 			if (!node) throw std::out_of_range("rbtree::find");
-			return node->data().second;
+			return node->data();
 		}
-		template <
-			class KeyCmp
-		> const T			&find(
-			const Key &key,
-			const KeyCmp &cmp = std::less< Key >()
-		) const {
+		const value_type	&find(const value_type &value) const {
 			const rbnode	*node = _root;
 
 			if (!node) throw std::out_of_range("tree is empty");
 			while (true) {
-				if (cmp(key, node->data().first)) {
+				if (_comp(value, node->cdata())) {
 					if (!node->left()) throw std::out_of_range("out of range");
 					node = node->left();
-				} else if (key != node->data().first) {
+				} else if (_comp(node->cdata(), value)) {
 					if (!node->right()) throw std::out_of_range("out of range");
 					node = node->right();
 				} else break ;
 			}
-			return node->data().second;
+			return node->cdata();
 		}
-		template <
-			class KeyCmp
-		> iterator		find_iterator(
-			const Key &key,
-			const KeyCmp &cmp = std::less< Key >()
-		) {
+		iterator		find_iterator(const value_type &value) {
 			rbnode	*node = _root;
 
 			if (!node) throw std::out_of_range("tree is empty");
 			while (true) {
-				if (cmp(key, node->data().first)) {
+				if (_comp(value, node->cdata())) {
 					if (!node->left()) throw std::out_of_range("out of range");
 					node = node->left();
-				} else if (key != node->data().first) {
+				} else if (_comp(node->cdata(), value)) {
 					if (!node->right()) throw std::out_of_range("out of range");
 					node = node->right();
 				} else break ;
 			}
 			return iterator(node, _root);
 		}
-		template <
-			class KeyCmp
-		> const_iterator		find_iterator(
-			const Key &key,
-			const KeyCmp &cmp = std::less< Key >()
-		) const {
+		const_iterator		find_iterator(const value_type &value) const {
 			const rbnode	*node = _root;
 
 			if (!node) throw std::out_of_range("tree is empty");
 			while (true) {
-				if (cmp(key, node->data().first)) {
+				if (_comp(value, node->cdata())) {
 					if (!node->left()) throw std::out_of_range("out of range");
 					node = node->left();
-				} else if (key != node->data().first) {
+				} else if (_comp(node->cdata(), value)) {
 					if (!node->right()) throw std::out_of_range("out of range");
 					node = node->right();
 				} else break ;
@@ -506,20 +485,15 @@ color_check:	if (child->color() == RED && parent->color() == RED) {
 		}
 
 #define END_NODE reinterpret_cast< rbnode* >(-1)
-		template <
-			class KeyCmp
-		> void			remove(
-			const Key &key,
-			const KeyCmp &cmp = std::less< Key >()
-		) {
+		void			remove(const value_type &value) {
 			if (!_root) throw std::invalid_argument("tree is empty");
 			rbnode	*node = _root;
 
 			while (true) {
-				if (cmp(key, node->data().first)) {
+				if (_comp(value, node->cdata())) {
 					if (node->left()) node = node->left();
 					else throw std::invalid_argument("value not found");
-				} else if (key != node->data().first) {
+				} else if (_comp(node->cdata(), value)) {
 					if (node->right()) node = node->right();
 					else throw std::invalid_argument("value not found");
 				} else {
@@ -527,8 +501,13 @@ color_check:	if (child->color() == RED && parent->color() == RED) {
 					pre = node->inorder_predecessor();
 					suc = node->inorder_successor();
 
-					if (key == _begin->data().first && !suc) _begin = _begin->parent();
-					if (key == _rbegin->data().first && !pre) _rbegin = _rbegin->parent();
+					if (
+						!_comp(value, _begin->cdata())
+						&& !_comp(_begin->cdata(), value) && !suc
+					) _begin = _begin->parent(); // ?
+					if (!_comp(value, _rbegin->cdata())
+						&& !_comp(_rbegin->cdata(), value) && !pre
+					) _rbegin = _rbegin->parent(); // ?
 					while (pre || suc) {
 						if (!pre || (suc && (suc->left() || suc->right()))) {
 							std::swap(node->raddr(), suc->raddr());

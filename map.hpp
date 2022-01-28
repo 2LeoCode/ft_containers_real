@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   map.hpp                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: crochu <crochu@student.42.fr>              +#+  +:+       +#+        */
+/*   By: lsuardi <lsuardi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/23 19:06:26 by crochu            #+#    #+#             */
-/*   Updated: 2021/12/30 01:01:32 by crochu           ###   ########.fr       */
+/*   Updated: 2022/01/28 17:45:52 by lsuardi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,15 +92,15 @@ namespace ft {
 			allocator_type	get_allocator() const { return _allocator; }
 
 			T				&at(const Key &key) {
-				return _tree.find(key, _keyCmp);
+				return _tree.find(ft::make_pair(key, NULL)).second;
 			}
 			const T			&at(const Key &key) const {
-				return _tree.find(key, _keyCmp);
+				return _tree.find(ft::make_pair(key, NULL)).second;
 			}
 			T				&operator [](const Key &key) {
 				ft::pair< iterator, bool > value;
 				try {
-					return _tree.find(key, _keyCmp);
+					return _tree.find(ft::make_pair(key, NULL)).second;
 				} catch (std::out_of_range &e) { }
 				return _tree.insert(ft::make_pair(key, T())).first->second;
 			}
@@ -160,15 +160,15 @@ namespace ft {
 
 			size_type				count(const Key &key) const {
 				try {
-					_tree.find(key);
+					_tree.find(ft::make_pair(key, NULL));
 				} catch (...) { return 0; }
 				return 1;
 			}
 			iterator				find(const Key &key) {
-				return _tree.find_iterator(key, _keyCmp);
+				return _tree.find_iterator(ft::make_pair(key, NULL));
 			}
 			const_iterator			find(const Key &key) const {
-				return _tree.find_iterator(key, _keyCmp);
+				return _tree.find_iterator(ft::make_pair(key, NULL));
 			}
 			ft::pair<
 				iterator,
@@ -213,10 +213,11 @@ namespace ft {
 			value_compare	_valueCmp;
 			Allocator		_allocator;
 			rbtree<
-				Key, T,
+				value_type,
 				value_compare,
 				Allocator,
-				size_type, difference_type
+				size_type,
+				difference_type
 			>				_tree;
 	};
 
