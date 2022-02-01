@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   reverse_iterator.hpp                               :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lsuardi <lsuardi@student.42.fr>            +#+  +:+       +#+        */
+/*   By: Leo Suardi <lsuardi@student.42.fr>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/25 16:57:23 by crochu            #+#    #+#             */
-/*   Updated: 2022/01/28 16:38:35 by lsuardi          ###   ########.fr       */
+/*   Updated: 2022/01/31 23:57:14 by Leo Suardi       ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,11 +50,10 @@ namespace ft {
 		
 			reference	operator *(void) const {
 				Iter	tmp = current;
-				return *--tmp;
+				return const_cast< reference >(*--tmp);
 			}
 			pointer		operator ->(void) const {
-				Iter	tmp = current;
-				return &*--tmp;
+				return &operator *();
 			}
 			reference	operator [](difference_type n) {
 				return current[-n - 1];

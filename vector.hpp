@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   vector.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lsuardi <lsuardi@student.42.fr>            +#+  +:+       +#+        */
+/*   By: Leo Suardi <lsuardi@student.42.fr>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/26 01:17:15 by crochu            #+#    #+#             */
-/*   Updated: 2022/01/28 16:39:42 by lsuardi          ###   ########.fr       */
+/*   Updated: 2022/01/30 16:03:13 by Leo Suardi       ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -110,7 +110,7 @@ namespace ft {
 			}
 
 			void			assign(size_type count, const T &value) {
-				_assignm_size(count, value);
+				m_assign_size(count, value);
 			}
 			template <
 				class InputIt

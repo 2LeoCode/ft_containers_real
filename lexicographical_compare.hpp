@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   lexicographical_compare.hpp                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lsuardi <lsuardi@student.42.fr>            +#+  +:+       +#+        */
+/*   By: Leo Suardi <lsuardi@student.42.fr>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/25 22:13:00 by crochu            #+#    #+#             */
-/*   Updated: 2022/01/28 15:33:43 by lsuardi          ###   ########.fr       */
+/*   Updated: 2022/02/01 13:07:18 by Leo Suardi       ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@ namespace ft {
 	) {
 		while (first1 != last1 && first2 != last2 && *first1 == *first2)
 			++first1, ++first2;
-		if (first1 == last1 && first2 == last2) return false;
+		if (first2 == last2) return false;
 		return first1 == last1 || *first1 < *first2;
 	}
 
@@ -35,9 +35,10 @@ namespace ft {
 		InputIt2 first2, InputIt2 last2,
 		Compare comp
 	) {
-		while (first1 != last1 && first2 != last2 && *first1 == *first2)
+		while (first1 != last1 && first2 != last2
+		&& !comp(*first1, *first2) && !comp(*first2, *first1))
 			++first1, ++first2;
-		if (first1 == last1 && first2 == last2) return false;
+		if (first2 == last2) return false;
 		return first1 == last1 || comp(*first1, *first2);
 	}
 }

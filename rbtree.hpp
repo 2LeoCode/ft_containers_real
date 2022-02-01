@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   rbtree.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lsuardi <lsuardi@student.42.fr>            +#+  +:+       +#+        */
+/*   By: Leo Suardi <lsuardi@student.42.fr>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/05 23:43:13 by crochu            #+#    #+#             */
-/*   Updated: 2022/01/28 17:42:33 by lsuardi          ###   ########.fr       */
+/*   Updated: 2022/02/01 21:01:56 by Leo Suardi       ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,171 +45,175 @@ template <
 					const value_type &data,
 					rbnode *parent = NULL,
 					void *hint = NULL
-				) :	_allocator(Allocator()),
-					_color(color),
-					_parent(parent),
-					_left(NULL),
-					_right(NULL),
-					_data(_allocator.allocate(1, hint)) {					
-					_allocator.construct(_data, data);
+				) :	m_alloc(Allocator()),
+					m_color(color),
+					m_parent(parent),
+					m_left(NULL),
+					m_right(NULL),
+					m_data(m_alloc.allocate(1, hint)) {					
+					m_alloc.construct(m_data, data);
 				}
 				~rbnode() {
-					if (_parent) {
-						if (_parent->_right == this) _parent->_right = NULL;
-						else if (_parent->_left == this) _parent->_left = NULL;
+					if (m_parent) {
+						if (m_parent->m_right == this) m_parent->m_right = NULL;
+						else if (m_parent->m_left == this) m_parent->m_left = NULL;
 					}
-					_allocator.destroy(_data);
-					_allocator.deallocate(_data, 1);
+					m_alloc.destroy(m_data);
+					m_alloc.deallocate(m_data, 1);
 				}
 
-				//rbnode	&operator =(const rbnode &other) {
-				//	_data = other._data;
-				//	return *this;
-				//}
+				rbnode	&operator =(const rbnode &other) {
+					m_data = other.m_data;
+					return *this;
+				}
 				bool	operator ==(const rbnode &other) const {
-					return *_data == *other._data;
+					return *m_data == *other.m_data;
 				}
 				bool	operator !=(const rbnode &other) const {
 					return !operator ==(other);
 				}
 
-				value_type			&data(void) { return *_data; }
-				const value_type	&data(void) const { return *_data; }
-				value_type			*addr(void) { return _data; }
-				const value_type	*addr(void) const { return _data; }
-				value_type			*&raddr(void) { return _data; }
-				const value_type	*&raddr(void) const { return _data; }
-				enum color			color(void) const { return _color; }
-				rbnode				*parent(void) { return _parent; }
-				rbnode				*left(void) { return _left; }
-				const rbnode		*left(void) const { return _left; }
-				rbnode				*&rleft(void) { return _left; }
-				rbnode				*right(void) { return _right; }
-				const rbnode		*right(void) const { return _right; }
-				rbnode				*&rright(void) { return _right; }
+				value_type			&data(void) { return *m_data; }
+				const value_type	&data(void) const { return *m_data; }
+				value_type			*addr(void) { return m_data; }
+				const value_type	*addr(void) const { return m_data; }
+				value_type			*&raddr(void) { return m_data; }
+				const value_type	*&raddr(void) const { return m_data; }
+				enum color			color(void) const { return m_color; }
+				rbnode				*parent(void) { return m_parent; }
+				rbnode				*left(void) { return m_left; }
+				const rbnode		*left(void) const { return m_left; }
+				rbnode				*&rleft(void) { return m_left; }
+				rbnode				*right(void) { return m_right; }
+				const rbnode		*right(void) const { return m_right; }
+				rbnode				*&rright(void) { return m_right; }
 				rbnode				*sibling(void) {
-					return _parent->_left == this ?
-						_parent->_right : _parent->_left;
+					if (!m_parent) return NULL;
+					return m_parent->m_left == this ?
+						m_parent->m_right : m_parent->m_left;
 				}
 
 				rbnode		*rotate_left(void) {
-					rbnode	*parent = _parent;
-					_parent = _right;
+					rbnode	*parent = m_parent;
+					m_parent = m_right;
 					if (parent) {
-						if (parent->_left == this)
-							parent->_left = _right;
-						else parent->_right =_right;
+						if (parent->m_left == this)
+							parent->m_left = m_right;
+						else parent->m_right =m_right;
 					}
-					rbnode	*y = _right->_left;
-					_right->_left = this;
-					_right->_parent = parent;
-					_right = y;
-					if (_right)
-						_right->_parent = this;
-					return _parent;
+					rbnode	*y = m_right->m_left;
+					m_right->m_left = this;
+					m_right->m_parent = parent;
+					m_right = y;
+					if (m_right)
+						m_right->m_parent = this;
+					return m_parent;
 				}
 				rbnode		*rotate_right(void) {
-					rbnode	*parent = _parent;
-					_parent = _left;
+					rbnode	*parent = m_parent;
+					m_parent = m_left;
 					if (parent) {
-						if (parent->_left == this)
-							parent->_left = _left;
-						else parent->_right = _left;
+						if (parent->m_left == this)
+							parent->m_left = m_left;
+						else parent->m_right = m_left;
 					}
-					rbnode	*y = _left->_right;
-					_left->_right = this;
-					_left->_parent = parent;
-					_left = y;
-					if (_left)
-						_left->_parent = this;
-					return _parent;
+					rbnode	*y = m_left->m_right;
+					m_left->m_right = this;
+					m_left->m_parent = parent;
+					m_left = y;
+					if (m_left)
+						m_left->m_parent = this;
+					return m_parent;
 				}
 				rbnode		*insert_rotation(rbnode *child) {
-					if (_left != child && _right != child)
-						throw std::invalid_argument("invalid child node");
-					if (!_parent)
-						throw std::invalid_argument("can't rotate root node");
+					if (m_left != child && m_right != child)
+						throw std::invalid_argument("rbnode::insert_rotation");
+					if (!m_parent)
+						throw std::invalid_argument("rbnode::insert_rotation");
 
-					if (_parent->_left == this) {
-						if (_left == child)
-							return _parent->rotate_right();// LL case
+					if (m_parent->m_left == this) {
+						if (m_left == child)
+							return m_parent->rotate_right();// LL case
 						else
-							return rotate_left()->_parent->rotate_right();
-					} else if (_right == child)
-						return _parent->rotate_left();// RR case
-					return rotate_right()->_parent->rotate_left(); // RL case
+							return rotate_left()->m_parent->rotate_right();
+					} else if (m_right == child)
+						return m_parent->rotate_left();// RR case
+					return rotate_right()->m_parent->rotate_left(); // RL case
 				}
 
 				rbnode		*recolor(void) {
-					_color = BLACK;
-					if (_left) _left->_color = RED;
-					if (_right) _right->_color = RED;
+					m_color = BLACK;
+					if (m_left) m_left->m_color = RED;
+					if (m_right) m_right->m_color = RED;
 					return this;
 				}
 
 				rbnode		*inorder_successor(void) {
-					rbnode	*s = _right;
+					rbnode	*s = m_right;
 					if (!s) return NULL;
-					while (s->_left) s = s->_left;
+					while (s->m_left) s = s->m_left;
 					return s;
 				}
 				rbnode		*inorder_predecessor(void) {
-					rbnode	*s = _left;
+					rbnode	*s = m_left;
 					if (!s) return NULL;
-					while (s->_right) s = s->_right;
+					while (s->m_right) s = s->m_right;
 					return s;
 				}
 				void		swap_color(rbnode *other) {
-					std::swap(other->_color, _color);
+					std::swap(other->m_color, m_color);
 				}
-				void		set_color(enum color color) { _color = color; }
+				void		set_color(enum color color) { m_color = color; }
 				rbnode		*add_child(
 					const value_type &data,
 					const value_compare &cmp,
 					void *hint = NULL
 				) {
-					bool	is_less = cmp(data, *_data);
+					bool	is_less = cmp(data, *m_data);
 
 					if (is_less) {
-						if (_left) throw std::invalid_argument(
-								"node already has a left child"
+						if (m_left) throw std::invalid_argument(
+								"rbnode::add_child"
 							);
-					} else if (cmp(*_data, data)) {
-						if (_right) 
+					} else if (cmp(*m_data, data)) {
+						if (m_right) 
 							throw std::invalid_argument(
-								"node already has a right child"
+								"rbnode::add_child"
 							);
 					} else throw EDuplicate();
 
 					rbnode	*child = new rbnode(RED, data, this, hint);
-					if (is_less) _left = child;
-					else _right = child;
+					if (is_less) m_left = child;
+					else m_right = child;
 					return (child);
 				}
-				void		swap(rbnode *other) { std::swap(*_data, *other->_data); }
+				void		swap(rbnode *other) { std::swap(*m_data, *other->m_data); }
 
-				struct EDuplicate {
+				struct EDuplicate : public std::exception {
 					const char	*what(void) const throw () {
-						return "duplicate node";
+						return "rbnode::EDuplicate";
 					}
 				};
 			private:
-				Allocator		_allocator;
-				enum color		_color;
-				rbnode			*_parent;
-				rbnode			*_left;
-				rbnode			*_right;
-				value_type		*_data;
+				Allocator		m_alloc;
+				enum color		m_color;
+				rbnode			*m_parent;
+				rbnode			*m_left;
+				rbnode			*m_right;
+				value_type		*m_data;
 		};
 
 		class const_iterator : public std::iterator <
 			std::random_access_iterator_tag,
-			value_type
+			value_type,
+			difference_type,
+			const value_type*,
+			const value_type&
 		> {
 			public:
-				const_iterator(rbnode **r = NULL) : root(*r), node(NULL) { }
-				const_iterator(const rbnode *from, rbnode *&r) : root(r), node(const_cast< rbnode * >(from)) { }
-				const_iterator(const const_iterator &other) : root(other.root), node(other.node) { }
+				const_iterator(rbnode **r = NULL) : default_val(), root(r), node(NULL) { }
+				const_iterator(rbnode *from, rbnode *&r) : default_val(), root(&r), node(from) { }
+				const_iterator(const const_iterator &other) : default_val(), root(other.root), node(other.node) { }
 
 				const_iterator		&operator =(const const_iterator &other) {
 					root = other.root;
@@ -223,8 +227,16 @@ template <
 					return node != other.node;
 				}
 
-				const value_type	&operator *(void) const { return node->data(); }
-				const value_type	*operator ->(void) const { return node->addr(); }
+				virtual const value_type	&operator *(void) const {
+					if (node)
+						return node->data();
+					return default_val;
+				}
+				virtual const value_type	*operator ->(void) const {
+					if (node)
+						return node->addr();
+					return &default_val;
+				}
 				const_iterator		&operator++(void) {
 					if (node) {
 						if (node->right()) {
@@ -241,13 +253,13 @@ template <
 								node = y;
 						}
 					} else {
-						if ((node = root))
+						if ((node = *root))
 							while (node->left()) node = node->left();
 					}
 					return *this;
 				}
 				const_iterator		operator++(int) {
-					const_iterator	backup(node, root);
+					const_iterator	backup(const_cast< rbnode* >(node), const_cast< rbnode*& >(*root));
 					operator ++();
 					return backup;
 				}
@@ -267,33 +279,40 @@ template <
 								node = y;
 						}
 					} else {
-						if ((node = root))
+						if ((node = *root))
 							while (node->right()) node = node->right();
 					}
 					return *this;
 				}
 				const_iterator		operator--(int) {
-					const_iterator	backup(node, root);
+					const_iterator	backup(const_cast< rbnode* >(node), const_cast< rbnode*& >(*root));
 					operator--();
 					return backup;
 				}
 
 			protected:
-				rbnode	*&root;
-				rbnode	*node;
+				value_type	default_val;
+				rbnode		**root;
+				rbnode		*node;
 		};
 		class iterator : public const_iterator {
 			public:
+				typedef value_type*	pointer;
+				typedef value_type& reference;
+
 				iterator(rbnode **root = NULL) : const_iterator(root) { }
 				iterator(rbnode *from, rbnode *&root) : const_iterator(from, root) { }
 				iterator(const iterator &other) : const_iterator(other) { }
+				//iterator(const const_iterator &other) : const_iterator(other) { }
 				iterator	&operator =(const iterator &other) {
 					const_iterator::root = other.const_iterator::root;
 					const_iterator::node = other.const_iterator::node;
 					return *this;
 				}
-				value_type	&operator *(void) { return const_iterator::node->data(); }
-				value_type	*operator ->(void) { return const_iterator::node->addr(); }
+				value_type			&operator *(void) { return const_iterator::node->data(); }
+				value_type			*operator ->(void) { return const_iterator::node->addr(); }
+				const value_type	&operator *(void) const { return const_iterator::node->data(); }
+				const value_type	*operator ->(void) const { return const_iterator::node->addr(); }
 				iterator	&operator ++(void) {
 					const_iterator::operator ++();
 					return *this;
@@ -319,17 +338,17 @@ template <
 		rbtree(
 			const value_compare &comp,
 			const Allocator &alloc = Allocator()
-		) :	_allocator(alloc), _comp(comp),
-			_size(0), _root(NULL),
-			_begin(NULL), _rbegin(NULL) { }
+		) :	m_alloc(alloc), m_comp(comp),
+			m_size(0), m_root(NULL),
+			m_begin(NULL), m_rbegin(NULL) { }
 		rbtree(const rbtree &other)
-		:	_allocator(other._allocator), _comp(other._comp),
-			_size(other._size), _root(NULL),
-			_begin(NULL), _rbegin(NULL) {
-			_preorder_copy(_root, other._root);
-			if ((_begin = _rbegin = _root)) {
-				while (_begin->left()) _begin = _begin->left();
-				while (_rbegin->right()) _rbegin = _rbegin->right();
+		:	m_alloc(other.m_alloc), m_comp(other.m_comp),
+			m_size(other.m_size), m_root(NULL),
+			m_begin(NULL), m_rbegin(NULL) {
+			m_preorder_copy(m_root, other.m_root);
+			if ((m_begin = m_rbegin = m_root)) {
+				while (m_begin->left()) m_begin = m_begin->left();
+				while (m_rbegin->right()) m_rbegin = m_rbegin->right();
 			}
 		}
 		template <
@@ -338,44 +357,45 @@ template <
 			InputIt first, InputIt last,
 			const value_compare &comp,
 			const Allocator &alloc = Allocator()
-		) : _allocator(alloc), _comp(comp), _size(0), _root(NULL) {
+		) : m_alloc(alloc), m_comp(comp), m_size(0), m_root(NULL) {
 			while (first != last) insert(*first++);
 		}
 		~rbtree() { clear(); }
 
 		rbtree	&operator =(const rbtree &other) {
 			clear();
-			_size = other._size;
-			_preorder_copy(_root, other._root);
-			_begin = _rbegin = _root;
-			while (_begin->left()) _begin = _begin->left();
-			while (_rbegin->right()) _rbegin = _rbegin->right();
+			m_size = other.m_size;
+			m_preorder_copy(m_root, other.m_root);
+			m_begin = m_rbegin = m_root;
+			while (m_begin->left()) m_begin = m_begin->left();
+			while (m_rbegin->right()) m_rbegin = m_rbegin->right();
 			return *this;
 		}
-		const rbnode	*root(void) const { return _root; }
+		const rbnode	*root(void) const { return m_root; }
 
-		size_type		size(void) const { return _size; }
+		size_type		size(void) const { return m_size; }
 		size_type		max_size(void) const {
 			return (
 				std::numeric_limits< difference_type >::max() /
 				(sizeof(rbnode) + sizeof(value_type))
+				- sizeof(rbtree)
 			);
 		}
 
 		void			clear(void) {
-			_clear_subtree(_root);
-			_size = 0;
-			_root = NULL;
+			m_clear_subtree(m_root);
+			m_size = 0;
+			m_root = m_begin = m_rbegin = NULL;
 		}
 
 		value_type		&find(const value_type &value) {
-			rbnode	*node = _root;
+			rbnode	*node = m_root;
 
 			if (!node) throw std::out_of_range("rbtree::find");
 			while (node) {
-				if (_comp(value, node->cdata())) {
+				if (m_comp(value, node->data())) {
 					node = node->left();
-				} else if (_comp(node->cdata(), value)) {
+				} else if (m_comp(node->data(), value)) {
 					node = node->right();
 				} else break ;
 			}
@@ -383,49 +403,53 @@ template <
 			return node->data();
 		}
 		const value_type	&find(const value_type &value) const {
-			const rbnode	*node = _root;
+			const rbnode	*node = m_root;
 
-			if (!node) throw std::out_of_range("tree is empty");
+			if (!node) throw std::out_of_range("rbtree::find");
 			while (true) {
-				if (_comp(value, node->cdata())) {
-					if (!node->left()) throw std::out_of_range("out of range");
+				if (m_comp(value, node->data())) {
+					if (!node->left()) throw std::out_of_range("rbtree::find");
 					node = node->left();
-				} else if (_comp(node->cdata(), value)) {
-					if (!node->right()) throw std::out_of_range("out of range");
+				} else if (m_comp(node->data(), value)) {
+					if (!node->right()) throw std::out_of_range("rbtree::find");
 					node = node->right();
 				} else break ;
 			}
-			return node->cdata();
+			return node->data();
 		}
 		iterator		find_iterator(const value_type &value) {
-			rbnode	*node = _root;
+			rbnode	*node = m_root;
 
-			if (!node) throw std::out_of_range("tree is empty");
+			if (!node) throw std::out_of_range("rbtree::find_iterator");
 			while (true) {
-				if (_comp(value, node->cdata())) {
-					if (!node->left()) throw std::out_of_range("out of range");
+				if (m_comp(value, node->data())) {
+					if (!node->left())
+						throw std::out_of_range("rbtree::find_iterator");
 					node = node->left();
-				} else if (_comp(node->cdata(), value)) {
-					if (!node->right()) throw std::out_of_range("out of range");
+				} else if (m_comp(node->data(), value)) {
+					if (!node->right())
+						throw std::out_of_range("rbtree::find_iterator");
 					node = node->right();
 				} else break ;
 			}
-			return iterator(node, _root);
+			return iterator(const_cast< rbnode* >(node), const_cast< rbnode*& >(m_root));
 		}
 		const_iterator		find_iterator(const value_type &value) const {
-			const rbnode	*node = _root;
+			const rbnode	*node = m_root;
 
-			if (!node) throw std::out_of_range("tree is empty");
+			if (!node) throw std::out_of_range("rbtree::find_iterator");
 			while (true) {
-				if (_comp(value, node->cdata())) {
-					if (!node->left()) throw std::out_of_range("out of range");
+				if (m_comp(value, node->data())) {
+					if (!node->left())
+						throw std::out_of_range("rbtree::find_iterator");
 					node = node->left();
-				} else if (_comp(node->cdata(), value)) {
-					if (!node->right()) throw std::out_of_range("out of range");
+				} else if (m_comp(node->data(), value)) {
+					if (!node->right())
+						throw std::out_of_range("rbtree::find_iterator");
 					node = node->right();
 				} else break ;
 			}
-			return const_iterator(node, _root);
+			return const_iterator(const_cast< rbnode* >(node), const_cast< rbnode*& >(m_root));
 		}
 
 		ft::pair<
@@ -434,32 +458,32 @@ template <
 		>				insert(const value_type &value, void *hint = NULL) {
 			rbnode	*new_node;
 	
-			if (!_root)
-				new_node	= _begin = _rbegin
-							= _root = new rbnode(BLACK, value, NULL, hint);
+			if (!m_root)
+				new_node	= m_begin = m_rbegin
+							= m_root = new rbnode(BLACK, value, NULL, hint);
 			else {
-				rbnode	*parent = _root;
+				rbnode	*parent = m_root;
 				rbnode	*child;
 
 				while (true) {
-					if (value.first == parent->data().first) {
-						return ft::make_pair(iterator(parent, _root), false);
+					if (!m_comp(value, parent->data()) && !m_comp(parent->data(), value)) {
+						return ft::make_pair(iterator(const_cast< rbnode* >(parent), const_cast< rbnode*& >(m_root)), false);
 					}
-					if (_comp(value, parent->data())) {
+					if (m_comp(value, parent->data())) {
 						if (parent->left()) parent = parent->left();
 						else {
-							new_node = parent->add_child(value, _comp);
+							new_node = parent->add_child(value, m_comp);
 							break ;
 						}
 					} else if (parent->right()) parent = parent->right();
 					else {
-						new_node = parent->add_child(value, _comp);
+						new_node = parent->add_child(value, m_comp);
 						break ;
 					}
 				}
 				child = new_node;
-				if (!_comp(_begin->data(), child->data())) _begin = child;
-				else if (_comp(_rbegin->data(), child->data())) _rbegin = child;
+				if (!m_comp(m_begin->data(), child->data())) m_begin = child;
+				else if (m_comp(m_rbegin->data(), child->data())) m_rbegin = child;
 
 color_check:	if (child->color() == RED && parent->color() == RED) {
 					if (
@@ -479,35 +503,28 @@ color_check:	if (child->color() == RED && parent->color() == RED) {
 					}
 				}
 			}
-			while (_root->parent()) _root = _root->parent();
-			++_size;
-			return ft::make_pair(iterator(new_node, _root), true);
+			while (m_root->parent()) m_root = m_root->parent();
+			++m_size;
+			return ft::make_pair(iterator(const_cast< rbnode* >(new_node), const_cast< rbnode*& >(m_root)), true);
 		}
 
 #define END_NODE reinterpret_cast< rbnode* >(-1)
 		void			remove(const value_type &value) {
-			if (!_root) throw std::invalid_argument("tree is empty");
-			rbnode	*node = _root;
+			if (!m_root) throw std::invalid_argument("rbtree::remove");
+			rbnode	*node = m_root;
 
 			while (true) {
-				if (_comp(value, node->cdata())) {
+				if (m_comp(value, node->data())) {
 					if (node->left()) node = node->left();
-					else throw std::invalid_argument("value not found");
-				} else if (_comp(node->cdata(), value)) {
+					else throw std::invalid_argument("rbtree::remove");
+				} else if (m_comp(node->data(), value)) {
 					if (node->right()) node = node->right();
-					else throw std::invalid_argument("value not found");
+					else throw std::invalid_argument("rbtree::remove");
 				} else {
 					rbnode	*pre, *suc;
 					pre = node->inorder_predecessor();
 					suc = node->inorder_successor();
 
-					if (
-						!_comp(value, _begin->cdata())
-						&& !_comp(_begin->cdata(), value) && !suc
-					) _begin = _begin->parent(); // ?
-					if (!_comp(value, _rbegin->cdata())
-						&& !_comp(_rbegin->cdata(), value) && !pre
-					) _rbegin = _rbegin->parent(); // ?
 					while (pre || suc) {
 						if (!pre || (suc && (suc->left() || suc->right()))) {
 							std::swap(node->raddr(), suc->raddr());
@@ -524,8 +541,8 @@ color_check:	if (child->color() == RED && parent->color() == RED) {
 					enum color	col = node->color();
 					delete node;
 
-					if (!--_size) {
-						_root = _begin = _rbegin = NULL;
+					if (!--m_size) {
+						m_root = m_begin = m_rbegin = NULL;
 						return ;
 					}
 
@@ -533,7 +550,7 @@ color_check:	if (child->color() == RED && parent->color() == RED) {
 						node = NULL;
 					else node = END_NODE;
 					while (node != END_NODE) {
-						if (node == _root) node = END_NODE;
+						if (node == m_root) node = END_NODE;
 						else {
 							if (sib->color() == BLACK) {
 								if ((
@@ -603,16 +620,129 @@ color_check:	if (child->color() == RED && parent->color() == RED) {
 					break ;
 				}
 			}
-			while (_root->parent()) _root = _root->parent();
+			while (m_root->parent()) m_root = m_root->parent();
+			m_begin = m_rbegin = m_root;
+			while (m_begin->left()) m_begin = m_begin->left();
+			while (m_rbegin->right()) m_rbegin = m_rbegin->right();
 		}
 #undef END_NODE
 
-		iterator				begin(void) { return iterator(_begin, _root); }
-		const_iterator			begin(void) const {
-			return const_iterator(_begin, _root);
+		void					remove(const_iterator first, const_iterator last) {
+			rbnode				*pos = m_root;
+			rbnode				*last_node = NULL;
+			const value_type	*last_value = (last != end() ? &*last : NULL);
+
+			if (last_value) {
+				pos = m_root;
+				while (pos)
+					if (m_comp(pos->data(), *last_value))
+						pos = pos->right();
+					else if (m_comp(*last_value, pos->data()))
+						pos = pos->left();
+					else break ;
+				if (!pos) throw std::invalid_argument("rbtree::remove");
+				last_node = pos;
+			}
+			while (first != last) {
+				const value_type	*next_value;
+				bool				is_end = false;
+
+				if (++first == end())
+					is_end = true;
+				else next_value = &*first;
+				remove(*--first);
+				if (is_end)
+					first = last = end();
+				else {
+					pos = m_root;
+					while (pos)
+						if (m_comp(pos->data(), *next_value))
+							pos = pos->right();
+						else if (m_comp(*next_value, pos->data()))
+							pos = pos->left();
+						else break ;
+					if (!pos) throw std::invalid_argument("rbtree::remove");
+					first = iterator(const_cast< rbnode* >(pos), const_cast< rbnode*& >(m_root));
+				}
+			}
 		}
-		iterator				end(void) { return iterator(&_root); }
-		const_iterator			end(void) const { return const_iterator(&_root); }
+		iterator				lower_bound(const value_type &value) {
+			rbnode	*prev = NULL;
+			rbnode	*ptr = m_root;
+
+			while (ptr) {
+				if (m_comp(value, ptr->data())) {
+					prev = ptr;
+					ptr = ptr->left();
+				} else if (m_comp(ptr->data(), value)) {
+					ptr = ptr->right();
+				} else
+					return iterator(ptr, const_cast< rbnode*& >(m_root));
+			}
+			if (prev)
+				return iterator(prev, const_cast< rbnode*& >(m_root));
+			return end();
+		}
+		const_iterator			lower_bound(const value_type &value) const {
+			rbnode	*prev = NULL;
+			rbnode	*ptr = const_cast< rbnode* >(m_root);
+
+			while (ptr) {
+				if (m_comp(value, ptr->data())) {
+					prev = ptr;
+					ptr = ptr->left();
+				} else if (m_comp(ptr->data(), value)) {
+					ptr = ptr->right();
+				} else
+					return const_iterator(ptr, const_cast< rbnode*& >(m_root));
+			}
+			if (prev)
+				return const_iterator(prev, const_cast< rbnode*& >(m_root));
+			return end();
+		}
+		iterator				upper_bound(const value_type &value) {
+			rbnode	*prev = NULL;
+			rbnode	*ptr = m_root;
+
+			while (ptr) {
+				if (m_comp(value, ptr->data())) {
+					prev = ptr;
+					ptr = ptr->left();
+				} else if (m_comp(ptr->data(), value)) {
+					ptr = ptr->right();
+				} else
+					break ;
+			}
+			if (prev)
+				return iterator(prev, const_cast< rbnode*& >(m_root));
+			return end();
+		}
+		const_iterator			upper_bound(const value_type &value) const {
+			rbnode	*prev = NULL;
+			rbnode	*ptr = m_root;
+
+			while (ptr) {
+				if (m_comp(value, ptr->data())) {
+					prev = ptr;
+					ptr = ptr->left();
+				} else if (m_comp(ptr->data(), value)) {
+					ptr = ptr->right();
+				} else
+					break ;
+			}
+			if (prev)
+				return iterator(prev, const_cast< rbnode*& >(m_root));
+			return end();
+		}
+
+		iterator				begin(void) {
+			return iterator(const_cast< rbnode* >(m_begin), const_cast< rbnode*& >(m_root));
+		}
+		const_iterator			begin(void) const {
+			return const_iterator(const_cast< rbnode* >(m_begin), const_cast< rbnode*& >(m_root));
+		}
+		iterator				end(void) { return iterator(&const_cast< rbnode*& >(m_root)); }
+		const_iterator			end(void) const { return const_iterator(&const_cast< rbnode*& >(m_root)); }
 		reverse_iterator		rbegin(void) { return reverse_iterator(end()); }
 		const_reverse_iterator	rbegin(void) const {
 			return const_reverse_iterator(end());
@@ -624,35 +754,35 @@ color_check:	if (child->color() == RED && parent->color() == RED) {
 			std::ofstream	out(name, std::ios::trunc);
 
 			out << "digraph rbtree {" << std::endl;
-			_inorder_dot(_root, out);
+			m_inorder_dot(m_root, out);
 			out << "}" << std::endl;
 		}
 
 		void					swap(rbtree &other) {
-			std::swap(_allocator, other._allocator);
-			std::swap(_comp, other._comp);
-			std::swap(_size, other._size);
-			std::swap(_root, other._root);
-			std::swap(_begin, other._begin);
-			std::swap(_rbegin, other._rbegin);
+			std::swap(m_alloc, other.m_alloc);
+			std::swap(m_comp, other.m_comp);
+			std::swap(m_size, other.m_size);
+			std::swap(m_root, other.m_root);
+			std::swap(m_begin, other.m_begin);
+			std::swap(m_rbegin, other.m_rbegin);
 		}
 	private:
 
-		rbnode	*_preorder_copy(rbnode *&dst, rbnode *src, rbnode *parent = NULL) {
+		rbnode	*m_preorder_copy(rbnode *&dst, rbnode *src, rbnode *parent = NULL) {
 			if (src) {
 				dst = new rbnode(src->color(), src->data(), parent);
 				if (parent) {
 					if (src->parent()->left() == src) parent->rleft() = dst;
 					else parent->rright() = dst;
 				}
-				_preorder_copy(dst->rleft(), src->left(), dst);
-				_preorder_copy(dst->rright(), src->right(), dst);
+				m_preorder_copy(dst->rleft(), src->left(), dst);
+				m_preorder_copy(dst->rright(), src->right(), dst);
 			}
 			return dst;
 		}
-#define NODE_COLOR(node) (node->color() == RED ? "red" : "black")
-		void		_inorder_dot(rbnode *node, std::ofstream &out) const {
-			if (node->left()) _inorder_dot(node->left(), out);
+#define NODE_COLOR(node) ((node)->color() == RED ? "red" : "black")
+		void		m_inorder_dot(rbnode *node, std::ofstream &out) const {
+			if (node->left()) m_inorder_dot(node->left(), out);
 
 			if (node->left())
 				out << '\t' <<
@@ -670,22 +800,21 @@ color_check:	if (child->color() == RED && parent->color() == RED) {
 					node->data().first << " -> " <<
 					node->right()->data().first << " [ color = red ]" <<
 				std::endl;
-
-			if (node->right()) _inorder_dot(node->right(), out);
+			if (node->right()) m_inorder_dot(node->right(), out);
 		}
 #undef NODE_COLOR
 
-		void		_clear_subtree(rbnode *start) {
+		void		m_clear_subtree(rbnode *start) {
 			if (start) {
-				_clear_subtree(start->left()), _clear_subtree(start->right());
+				m_clear_subtree(start->left()), m_clear_subtree(start->right());
 				delete start;
 			}
 		}
 
-		Allocator			_allocator;
-		value_compare		_comp;
-		size_type			_size;
-		rbnode				*_root;
-		rbnode				*_begin;
-		rbnode				*_rbegin;
+		Allocator			m_alloc;
+		value_compare		m_comp;
+		size_type			m_size;
+		rbnode				*m_root;
+		rbnode				*m_begin;
+		rbnode				*m_rbegin;
 };
