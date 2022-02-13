@@ -6,7 +6,7 @@
 /*   By: Leo Suardi <lsuardi@student.42.fr>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/05 23:43:13 by crochu            #+#    #+#             */
-/*   Updated: 2022/02/01 21:01:56 by Leo Suardi       ###   ########.fr       */
+/*   Updated: 2022/02/13 19:59:37 by Leo Suardi       ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -211,108 +211,105 @@ template <
 			const value_type&
 		> {
 			public:
-				const_iterator(rbnode **r = NULL) : default_val(), root(r), node(NULL) { }
-				const_iterator(rbnode *from, rbnode *&r) : default_val(), root(&r), node(from) { }
-				const_iterator(const const_iterator &other) : default_val(), root(other.root), node(other.node) { }
+				const_iterator(rbnode *from = NULL, rbnode *root = NULL) : m_def(), m_root(root), m_node(from) { }
+				const_iterator(const const_iterator &other) : m_def(), m_root(other.m_root), m_node(other.m_node) { }
 
 				const_iterator		&operator =(const const_iterator &other) {
-					root = other.root;
-					node = other.node;
+					m_root = other.m_root;
+					m_node = other.m_node;
 					return *this;
 				}
-				bool				operator ==(const const_iterator &other) const {
-					return node == other.node;
-				}
-				bool				operator !=(const const_iterator &other) const {
-					return node != other.node;
-				}
+				bool				operator ==(const const_iterator &other) const
+				{ return m_node == other.m_node; }
+				bool				operator !=(const const_iterator &other) const
+				{ return m_node != other.m_node; }
 
 				virtual const value_type	&operator *(void) const {
-					if (node)
-						return node->data();
-					return default_val;
+					if (m_node)
+						return m_node->data();
+					return m_def;
 				}
 				virtual const value_type	*operator ->(void) const {
-					if (node)
-						return node->addr();
-					return &default_val;
+					if (m_node)
+						return m_node->addr();
+					return &m_def;
 				}
-				const_iterator		&operator++(void) {
-					if (node) {
-						if (node->right()) {
-							node = node->right();
-							while (node->left()) node = node->left();
+				const_iterator		&operator ++(void) {
+					if (m_node) {
+						if (m_node->right()) {
+							m_node = m_node->right();
+							while (m_node->left()) m_node = m_node->left();
 						} else {
-							rbnode	*y = node->parent();
-							while (y && node == y->right()) {
-								node = y;
+							rbnode	*y = m_node->parent();
+							while (y && m_node == y->right()) {
+								m_node = y;
 								y = y->parent();
 							}
-							if (!y) node = NULL;
-							else if (node->right() != y)
-								node = y;
+							if (!y) {
+								m_root = m_node;
+								m_node = NULL;
+							} else if (m_node->right() != y)
+								m_node = y;
 						}
-					} else {
-						if ((node = *root))
-							while (node->left()) node = node->left();
-					}
+					} else if ((m_node = m_root))
+						while (m_node->left()) m_node = m_node->left();
 					return *this;
 				}
-				const_iterator		operator++(int) {
-					const_iterator	backup(const_cast< rbnode* >(node), const_cast< rbnode*& >(*root));
+				const_iterator		operator ++(int) {
+					const_iterator	backup(*this);
 					operator ++();
 					return backup;
 				}
-				const_iterator		&operator--(void) {
-					if (node) {
-						if (node->left()) {
-							node = node->left();
-							while (node->right()) node = node->right();
+				const_iterator		&operator --(void) {
+					if (m_node) {
+						if (m_node->left()) {
+							m_node = m_node->left();
+							while (m_node->right()) m_node = m_node->right();
 						} else {
-							rbnode	*y = node->parent();
-							while (y && node == y->left()) {
-								node = y;
+							rbnode	*y = m_node->parent();
+							while (y && m_node == y->left()) {
+								m_node = y;
 								y = y->parent();
 							}
-							if (!y) node = NULL;
-							else if (node->left() != y)
-								node = y;
+							if (!y) {
+								m_root = m_node;
+								m_node = NULL;
+							}
+							else if (m_node->left() != y)
+								m_node = y;
 						}
-					} else {
-						if ((node = *root))
-							while (node->right()) node = node->right();
-					}
+					} else if ((m_node = m_root))
+						while (m_node->right()) m_node = m_node->right();
 					return *this;
 				}
-				const_iterator		operator--(int) {
-					const_iterator	backup(const_cast< rbnode* >(node), const_cast< rbnode*& >(*root));
+				const_iterator		operator --(int) {
+					const_iterator	backup(*this);
 					operator--();
 					return backup;
 				}
 
 			protected:
-				value_type	default_val;
-				rbnode		**root;
-				rbnode		*node;
+				value_type	m_def;
+				rbnode		*m_root;
+				rbnode		*m_node;
 		};
 		class iterator : public const_iterator {
 			public:
 				typedef value_type*	pointer;
 				typedef value_type& reference;
 
-				iterator(rbnode **root = NULL) : const_iterator(root) { }
-				iterator(rbnode *from, rbnode *&root) : const_iterator(from, root) { }
+				iterator(rbnode *from = NULL, rbnode *root = NULL) : const_iterator(from, root) { }
 				iterator(const iterator &other) : const_iterator(other) { }
 				//iterator(const const_iterator &other) : const_iterator(other) { }
 				iterator	&operator =(const iterator &other) {
-					const_iterator::root = other.const_iterator::root;
-					const_iterator::node = other.const_iterator::node;
+					const_iterator::m_root = other.const_iterator::m_root;
+					const_iterator::m_node = other.const_iterator::m_node;
 					return *this;
 				}
-				value_type			&operator *(void) { return const_iterator::node->data(); }
-				value_type			*operator ->(void) { return const_iterator::node->addr(); }
-				const value_type	&operator *(void) const { return const_iterator::node->data(); }
-				const value_type	*operator ->(void) const { return const_iterator::node->addr(); }
+				value_type			&operator *(void) { return const_iterator::m_node->data(); }
+				value_type			*operator ->(void) { return const_iterator::m_node->addr(); }
+				const value_type	&operator *(void) const { return const_iterator::m_node->data(); }
+				const value_type	*operator ->(void) const { return const_iterator::m_node->addr(); }
 				iterator	&operator ++(void) {
 					const_iterator::operator ++();
 					return *this;
@@ -357,9 +354,8 @@ template <
 			InputIt first, InputIt last,
 			const value_compare &comp,
 			const Allocator &alloc = Allocator()
-		) : m_alloc(alloc), m_comp(comp), m_size(0), m_root(NULL) {
-			while (first != last) insert(*first++);
-		}
+		) : m_alloc(alloc), m_comp(comp), m_size(0), m_root(NULL)
+		{ while (first != last) insert(*first++); }
 		~rbtree() { clear(); }
 
 		rbtree	&operator =(const rbtree &other) {
@@ -432,7 +428,7 @@ template <
 					node = node->right();
 				} else break ;
 			}
-			return iterator(const_cast< rbnode* >(node), const_cast< rbnode*& >(m_root));
+			return iterator(const_cast< rbnode* >(node));
 		}
 		const_iterator		find_iterator(const value_type &value) const {
 			const rbnode	*node = m_root;
@@ -449,7 +445,7 @@ template <
 					node = node->right();
 				} else break ;
 			}
-			return const_iterator(const_cast< rbnode* >(node), const_cast< rbnode*& >(m_root));
+			return const_iterator(const_cast< rbnode* >(node));
 		}
 
 		ft::pair<
@@ -467,7 +463,7 @@ template <
 
 				while (true) {
 					if (!m_comp(value, parent->data()) && !m_comp(parent->data(), value)) {
-						return ft::make_pair(iterator(const_cast< rbnode* >(parent), const_cast< rbnode*& >(m_root)), false);
+						return ft::make_pair(const_cast< rbnode* >(parent), false);
 					}
 					if (m_comp(value, parent->data())) {
 						if (parent->left()) parent = parent->left();
@@ -505,7 +501,7 @@ color_check:	if (child->color() == RED && parent->color() == RED) {
 			}
 			while (m_root->parent()) m_root = m_root->parent();
 			++m_size;
-			return ft::make_pair(iterator(const_cast< rbnode* >(new_node), const_cast< rbnode*& >(m_root)), true);
+			return ft::make_pair(iterator(const_cast< rbnode* >(new_node)), true);
 		}
 
 #define END_NODE reinterpret_cast< rbnode* >(-1)
@@ -662,7 +658,7 @@ color_check:	if (child->color() == RED && parent->color() == RED) {
 							pos = pos->left();
 						else break ;
 					if (!pos) throw std::invalid_argument("rbtree::remove");
-					first = iterator(const_cast< rbnode* >(pos), const_cast< rbnode*& >(m_root));
+					first = iterator(const_cast< rbnode* >(pos));
 				}
 			}
 		}
@@ -677,10 +673,10 @@ color_check:	if (child->color() == RED && parent->color() == RED) {
 				} else if (m_comp(ptr->data(), value)) {
 					ptr = ptr->right();
 				} else
-					return iterator(ptr, const_cast< rbnode*& >(m_root));
+					return iterator(ptr);
 			}
 			if (prev)
-				return iterator(prev, const_cast< rbnode*& >(m_root));
+				return iterator(prev);
 			return end();
 		}
 		const_iterator			lower_bound(const value_type &value) const {
@@ -694,10 +690,10 @@ color_check:	if (child->color() == RED && parent->color() == RED) {
 				} else if (m_comp(ptr->data(), value)) {
 					ptr = ptr->right();
 				} else
-					return const_iterator(ptr, const_cast< rbnode*& >(m_root));
+					return const_iterator(ptr);
 			}
 			if (prev)
-				return const_iterator(prev, const_cast< rbnode*& >(m_root));
+				return const_iterator(prev);
 			return end();
 		}
 		iterator				upper_bound(const value_type &value) {
@@ -708,13 +704,10 @@ color_check:	if (child->color() == RED && parent->color() == RED) {
 				if (m_comp(value, ptr->data())) {
 					prev = ptr;
 					ptr = ptr->left();
-				} else if (m_comp(ptr->data(), value)) {
-					ptr = ptr->right();
-				} else
-					break ;
+				} else ptr = ptr->right();
 			}
 			if (prev)
-				return iterator(prev, const_cast< rbnode*& >(m_root));
+				return iterator(prev);
 			return end();
 		}
 		const_iterator			upper_bound(const value_type &value) const {
@@ -725,24 +718,21 @@ color_check:	if (child->color() == RED && parent->color() == RED) {
 				if (m_comp(value, ptr->data())) {
 					prev = ptr;
 					ptr = ptr->left();
-				} else if (m_comp(ptr->data(), value)) {
-					ptr = ptr->right();
-				} else
-					break ;
+				} else ptr = ptr->right();
 			}
 			if (prev)
-				return iterator(prev, const_cast< rbnode*& >(m_root));
+				return const_iterator(prev);
 			return end();
 		}
 
 		iterator				begin(void) {
-			return iterator(const_cast< rbnode* >(m_begin), const_cast< rbnode*& >(m_root));
+			return iterator(const_cast< rbnode* >(m_begin));
 		}
 		const_iterator			begin(void) const {
-			return const_iterator(const_cast< rbnode* >(m_begin), const_cast< rbnode*& >(m_root));
+			return const_iterator(const_cast< rbnode* >(m_begin));
 		}
-		iterator				end(void) { return iterator(&const_cast< rbnode*& >(m_root)); }
-		const_iterator			end(void) const { return const_iterator(&const_cast< rbnode*& >(m_root)); }
+		iterator				end(void) { return iterator(NULL, const_cast< rbnode* >(m_root)); }
+		const_iterator			end(void) const { return const_iterator(NULL, const_cast< rbnode* >(m_root)); }
 		reverse_iterator		rbegin(void) { return reverse_iterator(end()); }
 		const_reverse_iterator	rbegin(void) const {
 			return const_reverse_iterator(end());
