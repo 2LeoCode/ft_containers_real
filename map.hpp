@@ -6,7 +6,7 @@
 /*   By: Leo Suardi <lsuardi@student.42.fr>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/23 19:06:26 by crochu            #+#    #+#             */
-/*   Updated: 2022/02/13 19:55:01 by Leo Suardi       ###   ########.fr       */
+/*   Updated: 2022/02/14 19:35:07 by Leo Suardi       ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -229,6 +229,78 @@ namespace ft {
 			>				m_tree;
 	};
 
+	template <
+		class Key,
+		class T,
+		class Compare,
+		class Alloc
+	> bool	operator ==(
+		const ft::map< Key, T, Compare, Alloc > &lhs,
+		const ft::map< Key, T, Compare, Alloc > &rhs
+	) {
+		return (
+			lhs.size() == rhs.size()
+			&& ft::equal(lhs.begin(), lhs.end(), rhs.begin())
+		);
+	}
+	
+	template <
+		class Key,
+		class T,
+		class Compare,
+		class Alloc
+	> bool	operator <(
+		const ft::map< Key, T, Compare, Alloc > &lhs,
+		const ft::map< Key, T, Compare, Alloc > &rhs
+	) {
+		return ft::lexicographical_compare(
+			lhs.begin(), lhs.end(),
+			rhs.begin(), rhs.end()
+		);
+	}
+	
+	template <
+		class Key,
+		class T,
+		class Compare,
+		class Alloc
+	> bool	operator !=(
+		const ft::map< Key, T, Compare, Alloc > &lhs,
+		const ft::map< Key, T, Compare, Alloc > &rhs
+	) { return !(lhs == rhs); }
+	
+	template <
+		class Key,
+		class T,
+		class Compare,
+		class Alloc
+	> bool	operator <=(
+		const ft::map< Key, T, Compare, Alloc > &lhs,
+		const ft::map< Key, T, Compare, Alloc > &rhs
+	) { return lhs < rhs || lhs == rhs; }
+	
+	template <
+		class Key,
+		class T,
+		class Compare,
+		class Alloc
+	> bool	operator >(
+		const ft::map< Key, T, Compare, Alloc > &lhs,
+		const ft::map< Key, T, Compare, Alloc > &rhs
+	) { return !(lhs <= rhs); }
+	
+	template <
+		class Key,
+		class T,
+		class Compare,
+		class Alloc
+	> bool	operator >=(
+		const ft::map< Key, T, Compare, Alloc > &lhs,
+		const ft::map< Key, T, Compare, Alloc > &rhs
+	) { return !(lhs < rhs); }
+}
+
+namespace std {
 	template <
 		class Key,
 		class T,

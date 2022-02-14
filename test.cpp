@@ -1,21 +1,69 @@
-#include <iostream>
-#include "map.hpp"
+#include "vector.hpp"
+#include <vector>
 
-template < class Map >
-void	print(const Map &m) {
-	typename Map::const_iterator it = m.begin();
+#ifndef STD
+# define NAMESPACE ft
+#else
+# define NAMESPACE std
+#endif
 
-	std::cout << "Map:" << std::endl;
-	while (it != m.end())
-		std::cout << it->first << ',' << it++->second << std::endl;
-	std::cout << std::endl;
+using namespace NAMESPACE;
+
+template <class T>
+void	print(vector<vector<T> >& lst)
+{
+	for (typename vector<vector<T> >::iterator it = lst.begin(); it != lst.end(); it++)
+	{
+		for (typename vector<T>::iterator it2 = it->begin(); it2 != it->end(); it2++)
+			std::cout << *it2 << ' ';
+		std::cout << '\n';
+	}
 }
 
-int	main(void) {
-	ft::pair< const int, int > arr[] = { {1, 1}, {2, 2}, {3, 3}, {4, 4}, {5, 5} };
-	ft::map<int, int> m(arr, arr + 5);
+template <class T>
+void	print(vector<T>& lst)
+{
+	for (typename vector<T>::iterator it = lst.begin(); it != lst.end(); it++)
+		std::cout << *it << ' ';
+	std::cout << '\n';
+}
 
-	print(m);
-	ft::map<int, int> r(m.begin(), m.end());
-	print(r);
+
+int main ()
+{
+  vector<int> myvector (3,100);
+  vector<int>::iterator it;
+std::cout << "myvector contains:";
+  for (it=myvector.begin(); it<myvector.end(); it++)
+    std::cout << ' ' << *it;
+  std::cout << '\n';
+  it = myvector.begin();
+  it = myvector.insert ( it , 200 );
+std::cout << "myvector contains:";
+  for (it=myvector.begin(); it<myvector.end(); it++)
+    std::cout << ' ' << *it;
+  std::cout << '\n';
+  myvector.insert (it,2,300);
+std::cout << "myvector contains:";
+  for (it=myvector.begin(); it<myvector.end(); it++)
+    std::cout << ' ' << *it;
+  std::cout << '\n';
+  // "it" no longer valid, get a new one:
+  it = myvector.begin();
+
+  vector<int> anothervector (2,400);
+  myvector.insert (it+2,anothervector.begin(),anothervector.end());
+std::cout << "myvector contains:";
+  for (it=myvector.begin(); it<myvector.end(); it++)
+    std::cout << ' ' << *it;
+  std::cout << '\n';
+  int myarray [] = { 501,502,503 };
+  myvector.insert (myvector.begin(), myarray, myarray+3);
+
+  std::cout << "myvector contains:";
+  for (it=myvector.begin(); it<myvector.end(); it++)
+    std::cout << ' ' << *it;
+  std::cout << '\n';
+
+  return 0;
 }

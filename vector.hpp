@@ -6,7 +6,7 @@
 /*   By: Leo Suardi <lsuardi@student.42.fr>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/26 01:17:15 by crochu            #+#    #+#             */
-/*   Updated: 2022/01/30 16:03:13 by Leo Suardi       ###   ########.fr       */
+/*   Updated: 2022/02/14 21:05:23 by Leo Suardi       ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,8 @@
 #include <algorithm>
 #include <stdexcept>
 #include <limits>
-#include "to_string.h"
+#include <iostream>
+#include <sstream>
 #include "equal.hpp"
 #include "lexicographical_compare.hpp"
 #include "reverse_iterator.hpp"
@@ -66,7 +67,6 @@ namespace ft {
 				m_data(m_alloc.allocate(m_capacity)) {
 				while (size--)
 					m_alloc.construct(m_data + size, value);
-				std::fill(begin(), end(), value);
 			}
 
 			template <
@@ -84,7 +84,11 @@ namespace ft {
 				m_capacity(other.m_size),
 				m_size(m_capacity),
 				m_data(m_alloc.allocate(m_capacity)) {
-				std::copy(other.begin(), other.end(), begin());
+				vector::const_iterator it = other.begin();
+
+				while (it != other.end())
+					m_alloc.construct(m_data++, *it++);
+				m_data -= m_size;
 			}
 
 			vector(const vector &other, const Allocator &alloc)
@@ -92,20 +96,32 @@ namespace ft {
 				m_capacity(other.m_size),
 				m_size(m_capacity),
 				m_data(m_alloc.allocate(m_capacity)) {
-				std::copy(other.begin(), other.end(), begin());
+				vector::const_iterator it = other.begin();
+
+				while (it != other.end())
+					m_alloc.construct(m_data++, *it++);
+				m_data -= m_size;
 			}
 
 			~vector() {
-				while (m_size--)
-					m_alloc.destroy(m_data + m_size);
+				clear();
 				m_alloc.deallocate(m_data, m_capacity);
 			}
 
 			vector	&operator =(const vector &other) {
 				if (m_capacity < other.m_size) reserve(other.m_size);
+				
+				if (m_size < other.m_size) {
+					vector::const_iterator	it = other.begin() + m_size;
 
-				m_size = other.m_size;
-				std::copy(other.begin(), other.end(), m_data);
+					std::copy(other.begin(), other.begin() + m_size, m_data);
+					while (it != other.end())
+						m_alloc.construct(m_data + m_size++, *it++);
+				} else {
+					while (m_size > other.m_size)
+						m_alloc.destroy(m_data + --m_size);
+					std::copy(other.begin(), other.end(), m_data);
+				}
 				return *this;
 			}
 
@@ -132,9 +148,8 @@ namespace ft {
 			}
 
 			reference		operator [](size_type pos) { return m_data[pos]; }
-			const_reference operator [](size_type pos) const {
-				return m_data[pos];
-			}
+			const_reference operator [](size_type pos) const
+			{ return m_data[pos]; }
 
 			reference		front(void) { return *m_data; }
 			const_reference	front(void) const { return *m_data; }
@@ -151,19 +166,15 @@ namespace ft {
 			iterator				end(void) { return m_data + m_size; }
 			const_iterator			end(void) const { return m_data + m_size; }
 
-			reverse_iterator		rbegin(void) {
-				return reverse_iterator(m_data + m_size);
-			}
-			const_reverse_iterator	rbegin(void) const {
-				return const_reverse_iterator(m_data + m_size);
-			}
+			reverse_iterator		rbegin(void)
+			{ return reverse_iterator(m_data + m_size); }
+			const_reverse_iterator	rbegin(void) const
+			{ return const_reverse_iterator(m_data + m_size); }
 
-			reverse_iterator		rend(void) {
-				return reverse_iterator(m_data);
-			}
-			const_reverse_iterator	rend(void) const {
-				return const_reverse_iterator(m_data);
-			}
+			reverse_iterator		rend(void)
+			{ return reverse_iterator(m_data); }
+			const_reverse_iterator	rend(void) const
+			{ return const_reverse_iterator(m_data); }
 
 			//	Capacity
 			bool		empty(void) const { return !m_size; }
@@ -207,6 +218,7 @@ namespace ft {
 				if (m_size == m_capacity) reserve(m_size * 2);
 				iterator				newPos = begin() + offset;
 
+				m_alloc.construct(end(), T());
 				std::copy(newPos, end(), newPos + (newPos != end()));
 				*newPos = value;
 				++m_size;
@@ -224,13 +236,14 @@ namespace ft {
 
 			iterator	erase(iterator pos) {
 				std::copy(pos + 1, end(), pos);
-				--m_size;
+				m_alloc.destroy(m_data + --m_size);
 				return pos;
 			}
 			iterator	erase(iterator first, iterator last) {
 				difference_type	range = std::distance(first, last);
 
 				std::copy(last, end(), first);
+				last = first + range;
 				while (last != end())
 					m_alloc.destroy(last++);
 				m_size -= range;
@@ -241,11 +254,11 @@ namespace ft {
 				if (!m_capacity) reserve(1);
 				else if (m_size == m_capacity) reserve(m_size * 2);
 
-				*end() = value;
+				m_alloc.construct(end(), value);
 				++m_size;
 			}
 
-			void		pop_back(void) { --m_size; }
+			void		pop_back(void) { m_alloc.destroy(m_data + --m_size); }
 
 			void		resize(size_type count, T value = T()) {
 				if (count > m_capacity) reserve(count);
@@ -267,8 +280,7 @@ namespace ft {
 			private:
 
 				void		m_init_size(size_type size, const T &value) {
-					m_capacity = size;
-					m_size = size;
+					m_capacity = m_size = size;
 					m_data = m_alloc.allocate(m_capacity);
 					while (size--)
 						m_alloc.construct(m_data + size, value);
@@ -276,58 +288,59 @@ namespace ft {
 				template <
 					class InputIt
 				> void		m_init_range(InputIt first, InputIt last) {
-					m_capacity = std::distance(first, last);
-					m_size = m_capacity;
+					size_type	dist = m_capacity = m_size
+								= std::distance(first, last);
+
 					m_data = m_alloc.allocate(m_capacity);
-					for (size_type i = 0; i != m_size; ++i)
-						m_alloc.construct(m_data + i, *first++);
+					while (dist)
+						m_alloc.construct(m_data + --dist, *first++);
 				}
 
 				void		m_assign_size(size_type size, const T &value) {
-					if (size > m_capacity) reserve(size);
+					size_type	old_size = m_size;
 
+					if (size > m_capacity) reserve(size);
 					while (m_size > size)
 						m_alloc.destroy(m_data + --m_size);
 					while (m_size < size)
-						m_alloc.construct(m_data + m_size++, T());
-					while (size--)
-						*(m_data + size) = value;
+						m_alloc.construct(m_data + m_size++, value);
+					std::fill(m_data, m_data + old_size, value);
 				}
 				template <
 					class InputIt
 				> void		m_assign_range(InputIt first, InputIt last) {
 					size_type	size = std::distance(first, last);
-					if (size > m_capacity) reserve(size);
 
+					if (size > m_capacity) reserve(size);
 					while (m_size > size)
 						m_alloc.destroy(m_data + --m_size);
 					while (m_size < size)
 						m_alloc.construct(m_data + m_size++, T());
-					while (size--)
-						*(m_data + size) =  *--last;
+					std::copy(first, last, m_data);
 				}
 
 				iterator	m_insert_size(
 					iterator pos, size_type count, const T &value
 				) {
-					const size_type	size = m_size + count;
+					size_type		size = m_size + count;
+					const size_type	new_size = size;
 					const size_type	offset = pos - begin();
+					iterator		new_pos;
 
 					if (m_capacity < size) {
 						if (size > 2 * m_capacity) reserve(size);
 						else reserve(2 * m_capacity);
 					}
 
-					size_type	i = m_size;
-					while (i < size)
-						m_alloc.construct(m_data + i++, T());
-					iterator		newPos = begin() + offset;
+					while (size > m_size)
+						m_alloc.construct(m_data + --size, T());
+					new_pos = begin() + offset;
 
-					std::copy(newPos, end(), newPos + count);
-					std::fill(newPos, newPos + count, value);
-					
-					m_size = size;
-					return newPos;
+					std::copy(new_pos, end(), new_pos + count);
+					std::fill(new_pos, new_pos + count, value);
+
+					m_size = new_size;
+					return new_pos;
 				}
 				template <
 					class InputIt
@@ -335,18 +348,20 @@ namespace ft {
 					iterator pos, InputIt first, InputIt last
 				) {
 					const difference_type	count = std::distance(first, last);
+					size_type				size = m_size + count;
+					const size_type			new_size = size;
 					const difference_type	offset = pos - begin();
-					const size_type			size = m_size + count;
+					iterator				new_pos;
 
 					if (m_capacity < size) reserve(size);
-					while (m_size < size)
-						m_alloc.construct(m_data + m_size++, T());
-					iterator	newPos = begin() + offset;
+					while (size > m_size)
+						m_alloc.construct(m_data + --size, T());
+					new_pos = begin() + offset;
 
-					std::copy(newPos, end() - count, newPos + count);
-					std::copy(first, last, newPos);
-					m_size = size;
-					return newPos;
+					std::copy(new_pos, end(), new_pos + count);
+					std::copy(first, last, new_pos);
+					m_size = new_size;
+					return new_pos;
 				}
 
 				template <
@@ -397,14 +412,13 @@ namespace ft {
 				) { return m_insert_range(pos, first, last); }
 
 				void		m_range_check(size_type pos) const {
-					if (pos >= m_size) throw std::out_of_range(
-						std::string("vector::")
-						+ __func__
-						+ ": pos (which is "
-						+ ft::to_string(pos)
-						+ ") >= this->size() (which is "
-						+ ft::to_string(m_size) + ')'
-					);
+					if (pos >= m_size) {
+						std::ostringstream	error("vector::");
+						error << __func__ << ": pos (which is "
+							<< pos << ") >= this->size() (which is "
+							<< m_size << ')';
+						throw std::out_of_range(error.str());
+					}
 				}
 
 				Allocator	m_alloc;
@@ -412,6 +426,63 @@ namespace ft {
 				size_type	m_size;
 				T			*m_data;
 	};
+
+	template <
+		class T,
+		class Alloc
+	> bool	operator ==(
+		const ft::vector< T, Alloc > &lhs,
+		const ft::vector< T, Alloc > &rhs
+	) {
+		return (
+			lhs.size() == rhs.size()
+			&& ft::equal(lhs.begin(), lhs.end(), rhs.begin())
+		);
+	}
+	
+	template <
+		class T,
+		class Alloc
+	> bool	operator <(
+		const ft::vector< T, Alloc > &lhs,
+		const ft::vector< T, Alloc > &rhs
+	) {
+		return ft::lexicographical_compare(
+			lhs.begin(), lhs.end(), rhs.begin(), rhs.end()
+		);
+	}
+	
+	template <
+		class T,
+		class Alloc
+	> bool	operator !=(
+		const ft::vector< T, Alloc > &lhs,
+		const ft::vector< T, Alloc > &rhs
+	) { return !(lhs == rhs); }
+	
+	template <
+		class T,
+		class Alloc
+	> bool	operator <=(
+		const ft::vector< T, Alloc > &lhs,
+		const ft::vector< T, Alloc > &rhs
+	) { return lhs == rhs || lhs < rhs; }
+	
+	template <
+		class T,
+		class Alloc
+	> bool	operator >(
+		const ft::vector< T, Alloc > &lhs,
+		const ft::vector< T, Alloc > &rhs
+	) { return !(lhs <= rhs); }
+	
+	template <
+		class T,
+		class Alloc
+	> bool	operator >=(
+		const ft::vector< T, Alloc > &lhs,
+		const ft::vector< T, Alloc > &rhs
+	) { return !(lhs < rhs); }
 }
 
 namespace std {
@@ -422,60 +493,3 @@ namespace std {
 		lhs.swap(rhs);
 	}
 }
-
-template <
-	class T,
-	class Alloc
-> bool	operator ==(
-	const ft::vector< T, Alloc > &lhs,
-	const ft::vector< T, Alloc > &rhs
-) {
-	return (
-		lhs.size() == rhs.size()
-		&& ft::equal(lhs.begin(), lhs.end(), rhs.begin())
-	);
-}
-
-template <
-	class T,
-	class Alloc
-> bool	operator <(
-	const ft::vector< T, Alloc > &lhs,
-	const ft::vector< T, Alloc > &rhs
-) {
-	return ft::lexicographical_compare(
-		lhs.begin(), lhs.end(), rhs.begin(), rhs.end()
-	);
-}
-
-template <
-	class T,
-	class Alloc
-> bool	operator !=(
-	const ft::vector< T, Alloc > &lhs,
-	const ft::vector< T, Alloc > &rhs
-) { return !(lhs == rhs); }
-
-template <
-	class T,
-	class Alloc
-> bool	operator <=(
-	const ft::vector< T, Alloc > &lhs,
-	const ft::vector< T, Alloc > &rhs
-) { return lhs == rhs || lhs < rhs; }
-
-template <
-	class T,
-	class Alloc
-> bool	operator >(
-	const ft::vector< T, Alloc > &lhs,
-	const ft::vector< T, Alloc > &rhs
-) { return !(lhs <= rhs); }
-
-template <
-	class T,
-	class Alloc
-> bool	operator >=(
-	const ft::vector< T, Alloc > &lhs,
-	const ft::vector< T, Alloc > &rhs
-) { return !(lhs < rhs); }
