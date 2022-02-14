@@ -6,7 +6,7 @@
 /*   By: Leo Suardi <lsuardi@student.42.fr>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/05 23:43:13 by crochu            #+#    #+#             */
-/*   Updated: 2022/02/13 19:59:37 by Leo Suardi       ###   ########.fr       */
+/*   Updated: 2022/02/14 18:08:17 by Leo Suardi       ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -363,8 +363,10 @@ template <
 			m_size = other.m_size;
 			m_preorder_copy(m_root, other.m_root);
 			m_begin = m_rbegin = m_root;
-			while (m_begin->left()) m_begin = m_begin->left();
-			while (m_rbegin->right()) m_rbegin = m_rbegin->right();
+			if (m_root) {
+				while (m_begin->left()) m_begin = m_begin->left();
+				while (m_rbegin->right()) m_rbegin = m_rbegin->right();
+			}
 			return *this;
 		}
 		const rbnode	*root(void) const { return m_root; }
@@ -624,43 +626,17 @@ color_check:	if (child->color() == RED && parent->color() == RED) {
 #undef END_NODE
 
 		void					remove(const_iterator first, const_iterator last) {
-			rbnode				*pos = m_root;
-			rbnode				*last_node = NULL;
-			const value_type	*last_value = (last != end() ? &*last : NULL);
+			difference_type		dist = 0;
 
-			if (last_value) {
-				pos = m_root;
-				while (pos)
-					if (m_comp(pos->data(), *last_value))
-						pos = pos->right();
-					else if (m_comp(*last_value, pos->data()))
-						pos = pos->left();
-					else break ;
-				if (!pos) throw std::invalid_argument("rbtree::remove");
-				last_node = pos;
-			}
-			while (first != last) {
-				const value_type	*next_value;
-				bool				is_end = false;
+			for (const_iterator it(first); it != last; ++it)
+				++dist;
 
-				if (++first == end())
-					is_end = true;
-				else next_value = &*first;
-				remove(*--first);
-				if (is_end)
-					first = last = end();
-				else {
-					pos = m_root;
-					while (pos)
-						if (m_comp(pos->data(), *next_value))
-							pos = pos->right();
-						else if (m_comp(*next_value, pos->data()))
-							pos = pos->left();
-						else break ;
-					if (!pos) throw std::invalid_argument("rbtree::remove");
-					first = iterator(const_cast< rbnode* >(pos));
-				}
-			}
+			const value_type	*arr[dist];
+
+			for (difference_type i = 0; i < dist; ++i)
+				arr[i] = &*first++;
+			for (difference_type i = 0; i < dist; ++i)
+				remove(*arr[i]);
 		}
 		iterator				lower_bound(const value_type &value) {
 			rbnode	*prev = NULL;
