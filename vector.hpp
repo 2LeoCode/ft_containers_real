@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   vector.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: Leo Suardi <lsuardi@student.42.fr>         +#+  +:+       +#+        */
+/*   By: lsuardi <lsuardi@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/26 01:17:15 by crochu            #+#    #+#             */
-/*   Updated: 2022/02/14 21:05:23 by Leo Suardi       ###   ########.fr       */
+/*   Updated: 2022/02/15 14:39:19 by lsuardi          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -293,7 +293,7 @@ namespace ft {
 
 					m_data = m_alloc.allocate(m_capacity);
 					while (dist)
-						m_alloc.construct(m_data + --dist, *first++);
+						m_alloc.construct(m_data + --dist, *--last);
 				}
 
 				void		m_assign_size(size_type size, const T &value) {
