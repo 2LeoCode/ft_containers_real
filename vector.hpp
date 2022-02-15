@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   vector.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lsuardi <lsuardi@student.42.fr>            +#+  +:+       +#+        */
+/*   By: Leo Suardi <lsuardi@student.42.fr>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/26 01:17:15 by crochu            #+#    #+#             */
-/*   Updated: 2022/02/15 14:39:19 by lsuardi          ###   ########.fr       */
+/*   Updated: 2022/02/15 20:44:53 by Leo Suardi       ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -240,13 +240,13 @@ namespace ft {
 				return pos;
 			}
 			iterator	erase(iterator first, iterator last) {
-				difference_type	range = std::distance(first, last);
+				difference_type	last_to_end = std::distance(last, end());
+				iterator		it = first + last_to_end;
 
 				std::copy(last, end(), first);
-				last = first + range;
-				while (last != end())
-					m_alloc.destroy(last++);
-				m_size -= range;
+				while (it != end())
+					m_alloc.destroy(it++);
+				m_size -= std::distance(first, last);
 				return first;
 			}
 
@@ -261,7 +261,8 @@ namespace ft {
 			void		pop_back(void) { m_alloc.destroy(m_data + --m_size); }
 
 			void		resize(size_type count, T value = T()) {
-				if (count > m_capacity) reserve(count);
+				if (count > m_capacity * 2) reserve(count);
+				else if (count > m_capacity) reserve(m_capacity * 2);
 
 				while (m_size > count)
 					m_alloc.destroy(m_data + --m_size);
@@ -328,20 +329,22 @@ namespace ft {
 					iterator		new_pos;
 
 					if (m_capacity < size) {
-						if (size > 2 * m_capacity) reserve(size);
-						else reserve(2 * m_capacity);
+						if (size > 2 * m_size) reserve(size);
+						else reserve(2 * m_size);
 					}
 
 					while (size > m_size)
 						m_alloc.construct(m_data + --size, T());
 					new_pos = begin() + offset;
 
-					std::copy(new_pos, end(), new_pos + count);
+					std::copy_backward(new_pos, end(), end() + count);
 					std::fill(new_pos, new_pos + count, value);
 
 					m_size = new_size;
 					return new_pos;
 				}
+
+				// TO FIX
 				template <
 					class InputIt
 				> iterator	m_insert_range(
@@ -353,12 +356,15 @@ namespace ft {
 					const difference_type	offset = pos - begin();
 					iterator				new_pos;
 
-					if (m_capacity < size) reserve(size);
+					if (m_capacity < size) {
+						if (size > 2 * m_size) reserve(size);
+						else reserve(2 * m_size);
+					}
+					new_pos = begin() + offset + count;
 					while (size > m_size)
-						m_alloc.construct(m_data + --size, T());
-					new_pos = begin() + offset;
+						m_alloc.construct(m_data + --size, *--new_pos);
 
-					std::copy(new_pos, end(), new_pos + count);
+					std::copy_backward(new_pos, end(), end() + count);
 					std::copy(first, last, new_pos);
 					m_size = new_size;
 					return new_pos;

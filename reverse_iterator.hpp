@@ -6,7 +6,7 @@
 /*   By: Leo Suardi <lsuardi@student.42.fr>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/25 16:57:23 by crochu            #+#    #+#             */
-/*   Updated: 2022/01/31 23:57:14 by Leo Suardi       ###   ########.fr       */
+/*   Updated: 2022/02/15 15:32:03 by Leo Suardi       ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,70 +86,69 @@ namespace ft {
 		protected:
 			Iter	current;
 	};
+	template <
+		class Iterator1,
+		class Iterator2
+	> bool	operator ==(
+		const ft::reverse_iterator< Iterator1 > &lhs,
+		const ft::reverse_iterator< Iterator2 > &rhs
+	) {
+	
+		return lhs.base() == rhs.base();
+	}
+	
+	template <
+		class Iterator1,
+		class Iterator2
+	> bool	operator !=(
+		const ft::reverse_iterator< Iterator1 > &lhs,
+		const ft::reverse_iterator< Iterator2 > &rhs
+	) { return lhs.base() != rhs.base(); }
+	
+	template <
+		class Iterator1,
+		class Iterator2
+	> bool operator <(
+		const ft::reverse_iterator< Iterator1 > &lhs,
+		const ft::reverse_iterator< Iterator2 > &rhs
+	) { return lhs.base() > rhs.base(); }
+	
+	template <
+		class Iterator1,
+		class Iterator2
+	> bool operator <=(
+		const ft::reverse_iterator< Iterator1 > &lhs,
+		const ft::reverse_iterator< Iterator2 > &rhs
+	) { return lhs.base() >= rhs.base(); }
+	
+	template <
+		class Iterator1,
+		class Iterator2
+	> bool operator >(
+		const ft::reverse_iterator< Iterator1 > &lhs,
+		const ft::reverse_iterator< Iterator2 > &rhs
+	) { return lhs.base() < rhs.base(); }
+	
+	template <
+		class Iterator1,
+		class Iterator2
+	> bool operator >=(
+		const ft::reverse_iterator< Iterator1 > &lhs,
+		const ft::reverse_iterator< Iterator2 > &rhs
+	) { return lhs.base() <= rhs.base(); }
+	
+	template <
+		class Iter
+	> ft::reverse_iterator< Iter >	operator +(
+		typename ft::reverse_iterator< Iter >::difference_type n,
+		const ft::reverse_iterator< Iter > &it
+	) { return it + n; }
+	
+	template <
+		class Iter1,
+		class Iter2
+	> typename ft::reverse_iterator< Iter1 >::difference_type	operator -(
+		const ft::reverse_iterator< Iter1 >& lhs,
+		const ft::reverse_iterator< Iter2 >& rhs
+	) { return rhs.base() - lhs.base(); }
 }
-
-template <
-	class Iterator1,
-	class Iterator2
-> bool	operator ==(
-	const ft::reverse_iterator< Iterator1 > &lhs,
-	const ft::reverse_iterator< Iterator2 > &rhs
-) {
-
-	return lhs.base() == rhs.base();
-}
-
-template <
-	class Iterator1,
-	class Iterator2
-> bool	operator !=(
-	const ft::reverse_iterator< Iterator1 > &lhs,
-	const ft::reverse_iterator< Iterator2 > &rhs
-) { return lhs.base() != rhs.base(); }
-
-template <
-	class Iterator1,
-	class Iterator2
-> bool operator <(
-	const ft::reverse_iterator< Iterator1 > &lhs,
-	const ft::reverse_iterator< Iterator2 > &rhs
-) { return lhs.base() > rhs.base(); }
-
-template <
-	class Iterator1,
-	class Iterator2
-> bool operator <=(
-	const ft::reverse_iterator< Iterator1 > &lhs,
-	const ft::reverse_iterator< Iterator2 > &rhs
-) { return lhs.base() >= rhs.base(); }
-
-template <
-	class Iterator1,
-	class Iterator2
-> bool operator >(
-	const ft::reverse_iterator< Iterator1 > &lhs,
-	const ft::reverse_iterator< Iterator2 > &rhs
-) { return lhs.base() < rhs.base(); }
-
-template <
-	class Iterator1,
-	class Iterator2
-> bool operator >=(
-	const ft::reverse_iterator< Iterator1 > &lhs,
-	const ft::reverse_iterator< Iterator2 > &rhs
-) { return lhs.base() <= rhs.base(); }
-
-template <
-	class Iter
-> ft::reverse_iterator< Iter >	operator +(
-	typename ft::reverse_iterator< Iter >::difference_type n,
-	const ft::reverse_iterator< Iter > &it
-) { return it + n; }
-
-template <
-	class Iter1,
-	class Iter2
-> typename ft::reverse_iterator< Iter1 >::difference_type	operator -(
-	const ft::reverse_iterator< Iter1 >& lhs,
-	const ft::reverse_iterator< Iter2 >& rhs
-) { return rhs.base() - lhs.base(); }

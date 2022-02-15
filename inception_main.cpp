@@ -6,7 +6,7 @@
 /*   By: Leo Suardi <lsuardi@student.42.fr>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/12/02 13:07:06 by hbaudet           #+#    #+#             */
-/*   Updated: 2022/02/14 20:55:04 by Leo Suardi       ###   ########.fr       */
+/*   Updated: 2022/02/15 18:34:01 by Leo Suardi       ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -198,6 +198,7 @@ int main()
 		std::cout << '\n';
 	}
 
+	std::cout << "OK" << std::endl;
 	vector<vector<int> >::iterator	tmp;
 	test.assign(23, 19);
 	tmp = insert_in_me.begin() + 4;

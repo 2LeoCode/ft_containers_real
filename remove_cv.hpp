@@ -1,30 +1,18 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   integral_constant.hpp                              :+:      :+:    :+:   */
+/*   remove_cv.hpp                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: Leo Suardi <lsuardi@student.42.fr>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2021/12/04 16:31:57 by crochu            #+#    #+#             */
-/*   Updated: 2022/02/15 15:48:09 by Leo Suardi       ###   ########.fr       */
+/*   Created: 2022/02/15 15:31:10 by Leo Suardi        #+#    #+#             */
+/*   Updated: 2022/02/15 15:43:30 by Leo Suardi       ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#pragma once
-
 namespace ft {
-	template <
-		class T,
-		T v
-	> struct integral_constant {
-		typedef T							value_type;
-		typedef integral_constant< T, v >	type;
-
-		operator value_type(void) const { return value; }
-
-		static const T	value = v;
-	};
-
-	typedef integral_constant< bool, false >	false_type;
-	typedef integral_constant< bool, true >		true_type;
+	template < class T > struct remove_cv { typedef T type; };
+	template < class T > struct remove_cv< const T > : remove_cv< T > { };
+	template < class T > struct remove_cv< volatile T > : remove_cv< T > { };
+	template < class T > struct remove_cv< const volatile T > : remove_cv< T > { };
 }
