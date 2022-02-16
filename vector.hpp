@@ -6,7 +6,7 @@
 /*   By: Leo Suardi <lsuardi@student.42.fr>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/11/26 01:17:15 by crochu            #+#    #+#             */
-/*   Updated: 2022/02/15 20:44:53 by Leo Suardi       ###   ########.fr       */
+/*   Updated: 2022/02/16 00:35:53 by Leo Suardi       ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -212,21 +212,10 @@ namespace ft {
 					m_alloc.destroy(m_data + --m_size);
 			}
 
-			iterator	insert(iterator pos, const T &value) {
-				const difference_type	offset = pos - begin();
-
-				if (m_size == m_capacity) reserve(m_size * 2);
-				iterator				newPos = begin() + offset;
-
-				m_alloc.construct(end(), T());
-				std::copy(newPos, end(), newPos + (newPos != end()));
-				*newPos = value;
-				++m_size;
-				return newPos;
-			}
-			iterator	insert(iterator pos, size_type count, const T &value) {
-				return m_insert_size(pos, count, value);
-			}
+			iterator	insert(iterator pos, const T &value)
+			{ return insert(pos, &value, &value + 1); }
+			iterator	insert(iterator pos, size_type count, const T &value)
+			{ return m_insert_size(pos, count, value); }
 			template <
 				class InputIt
 			> iterator	insert(iterator pos, InputIt first, InputIt last) {
@@ -298,14 +287,15 @@ namespace ft {
 				}
 
 				void		m_assign_size(size_type size, const T &value) {
-					size_type	old_size = m_size;
+					size_type	end_fill;
 
 					if (size > m_capacity) reserve(size);
 					while (m_size > size)
 						m_alloc.destroy(m_data + --m_size);
+					end_fill = m_size;
 					while (m_size < size)
 						m_alloc.construct(m_data + m_size++, value);
-					std::fill(m_data, m_data + old_size, value);
+					std::fill(m_data, m_data + end_fill, value);
 				}
 				template <
 					class InputIt
@@ -344,7 +334,6 @@ namespace ft {
 					return new_pos;
 				}
 
-				// TO FIX
 				template <
 					class InputIt
 				> iterator	m_insert_range(
@@ -353,18 +342,21 @@ namespace ft {
 					const difference_type	count = std::distance(first, last);
 					size_type				size = m_size + count;
 					const size_type			new_size = size;
-					const difference_type	offset = pos - begin();
-					iterator				new_pos;
+					const difference_type	offset = pos - m_data;
+					iterator				new_pos, it;
 
 					if (m_capacity < size) {
 						if (size > 2 * m_size) reserve(size);
 						else reserve(2 * m_size);
 					}
-					new_pos = begin() + offset + count;
+					it = end();
+					new_pos = m_data + offset;
+					while (size > m_size && it > new_pos)
+						m_alloc.construct(m_data + --size, *--it);
 					while (size > m_size)
-						m_alloc.construct(m_data + --size, *--new_pos);
-
-					std::copy_backward(new_pos, end(), end() + count);
+						m_alloc.construct(m_data + --size, *--last);
+					while (it > new_pos)
+						m_data[--size] = *--it;
 					std::copy(first, last, new_pos);
 					m_size = new_size;
 					return new_pos;

@@ -6,7 +6,7 @@
 /*   By: Leo Suardi <lsuardi@student.42.fr>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/12/05 23:43:13 by crochu            #+#    #+#             */
-/*   Updated: 2022/02/14 18:08:17 by Leo Suardi       ###   ########.fr       */
+/*   Updated: 2022/02/16 14:29:55 by Leo Suardi       ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -306,8 +306,16 @@ template <
 					const_iterator::m_node = other.const_iterator::m_node;
 					return *this;
 				}
-				value_type			&operator *(void) { return const_iterator::m_node->data(); }
-				value_type			*operator ->(void) { return const_iterator::m_node->addr(); }
+				value_type			&operator *(void) {
+					if (const_iterator::m_node)
+						return const_iterator::m_node->data();
+					return const_iterator::m_def;
+				}
+				value_type			*operator ->(void) {
+					if (const_iterator::m_node)
+						return const_iterator::m_node->addr();
+					return &(const_iterator::m_def);
+				}
 				const value_type	&operator *(void) const { return const_iterator::m_node->data(); }
 				const value_type	*operator ->(void) const { return const_iterator::m_node->addr(); }
 				iterator	&operator ++(void) {
@@ -354,7 +362,9 @@ template <
 			InputIt first, InputIt last,
 			const value_compare &comp,
 			const Allocator &alloc = Allocator()
-		) : m_alloc(alloc), m_comp(comp), m_size(0), m_root(NULL)
+		) :	m_alloc(alloc), m_comp(comp),
+			m_size(0), m_root(NULL),
+			m_begin(NULL), m_rbegin(NULL)
 		{ while (first != last) insert(*first++); }
 		~rbtree() { clear(); }
 
@@ -514,10 +524,12 @@ color_check:	if (child->color() == RED && parent->color() == RED) {
 			while (true) {
 				if (m_comp(value, node->data())) {
 					if (node->left()) node = node->left();
-					else throw std::invalid_argument("rbtree::remove");
+					else
+						throw std::invalid_argument("rbtree::remove");
 				} else if (m_comp(node->data(), value)) {
 					if (node->right()) node = node->right();
-					else throw std::invalid_argument("rbtree::remove");
+					else
+						throw std::invalid_argument("rbtree::remove");
 				} else {
 					rbnode	*pre, *suc;
 					pre = node->inorder_predecessor();
